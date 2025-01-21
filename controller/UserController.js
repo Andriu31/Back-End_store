@@ -3,6 +3,7 @@ import { UserModel } from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { TOKEN_KEY } from "../config/config.js";
+import { PersonModel } from "../models/PersonModel.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -15,9 +16,19 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 export const getOneUser = async (req, res) => {
   try {
-    const user = await UserModel.findOne({where:{id:req.params.id}});
+    const user = await UserModel.findOne({
+      attributes: ['id', 'user', 'email','person_id'],
+      where:{id:req.params.id},
+    include:[
+      {
+        model: PersonModel,
+      }
+    ]
+    });
     if(!user){
       res.status(404).json({message: "user not found"});
     }
@@ -26,26 +37,34 @@ export const getOneUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 export const createUsers = async (req, res) => {
   try {
-    const { user, email, password } = req.body;
-    if (!(user ||  email ||  password)) {
+    const { user, email, password, typeusers_id } = req.body;
+    if (!(user ||  email ||  password )) {
       res.status(400).json({ message: "all input is required" });
     }
     // check if email already exist
     // Validate if email exist in our database
     const oldUser = await UserModel.findOne({ where: { email: email } });
     if (oldUser) {
-      return res.status(409).json("email already exist");
+      return res.status(409).json("El correo Electronico ya existe");
     }
     //Encrypt user password
    const encryptedPassword = await bcrypt.hash(password.toString(),10);
     // Create user in our database
+
+    const person = await  PersonModel.create();
+
+    const userType = typeusers_id || 1;
+
     const users = await UserModel.create({
       user,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
       password: encryptedPassword,
-      typeusers_id:1
+      typeusers_id:userType,
+      person_id:person.id
     });
     // Create token
     const token = jwt.sign({ user_id: users.id, email }, TOKEN_KEY, {
@@ -58,6 +77,9 @@ export const createUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
 export const updateUsers = async (req, res) => {
   const { user } = req.body;
   if (!(user)) {
@@ -72,6 +94,8 @@ export const updateUsers = async (req, res) => {
       res.status(404).json({message: "user not found"});
   }
 };
+
+
 export const updateUsersEmail = async (req, res) => {
   const { email } = req.body;
   if (!(email)) {
@@ -90,6 +114,8 @@ export const updateUsersEmail = async (req, res) => {
       res.status(404).json({message: "user not found"});
   }
 };
+
+
 export const updateUsersPassword = async (req, res) => {
   const { password } = req.body;
   if (!(password)) {
@@ -104,6 +130,8 @@ export const updateUsersPassword = async (req, res) => {
       res.status(404).json({message: "user not found"});
   }
 };
+
+
 export const deleteUsers = async (req, res) => {
   const user = await UserModel.findOne({ where: { id: req.params.id } });
   if (user) {
@@ -114,6 +142,9 @@ export const deleteUsers = async (req, res) => {
     res.status(404).json({ message: "type not found" });
   }
 };
+
+
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -138,6 +169,7 @@ export const login = async (req, res) => {
     });
       let dataUser={
           id:user.id,
+          idperson:user.person_id,
           user:user.user,
           email:user.email,
           typeusers_id:user.typeusers_id
@@ -151,6 +183,7 @@ export const login = async (req, res) => {
 export const logout = async (req, res)=>{
 
 }
+
 export const refresh = (req, res) => {
   const token = req.headers["authorization"].split(" ")[1];
 	if (!token) {
