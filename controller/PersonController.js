@@ -2,7 +2,7 @@
 import jwt from "jsonwebtoken";
 import { TOKEN_KEY } from "../config/config.js";
 import { PersonModel } from "../models/PersonModel.js";
-
+import { upload } from "../config/upload.js";
 
 
 export const updatePerson = async (req, res) => {

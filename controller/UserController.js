@@ -70,7 +70,7 @@ export const createUsers = async (req, res) => {
     const token = jwt.sign({ user_id: users.id, email }, TOKEN_KEY, {
       expiresIn: "1h",
     });
-    // save user token
+    // save user token        
     // users.token = token;
     res.status(201).json({ users, token: token });
   } catch (error) {

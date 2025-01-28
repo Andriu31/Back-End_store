@@ -15,14 +15,16 @@ import { fileURLToPath } from 'url';
 const _PORT = PORT || 3000;
 const app = express();
 
-// imaganes
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+// imaganes
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', rotuerTypeUsers);
 app.use('/api', RouterUsuer);
