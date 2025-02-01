@@ -21,7 +21,7 @@ import { TOKEN_KEY } from "../config/config.js";
         stock,
       });
   
-      res.status(201).json({ message: "Producto creado exitosamente", producto });
+      res.status(201).json({ message: "Producto creado exitosamente", producto:{id: producto.id} });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
