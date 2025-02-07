@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import { TOKEN_KEY } from "../config/config.js";
  import { ProductModel } from "../models/ProductModel.js";
  import { upload } from "../config/upload.js";
- 
+  import { Op } from "sequelize";
+
  export const createProduct = async (req, res) => {
     try {
       const { name, description, precio, categoria, stock } = req.body;
@@ -44,6 +45,25 @@ import { TOKEN_KEY } from "../config/config.js";
   };
 
 
+  export const getProduct = async (req, res) => {
+    try {
+      const id = req.params.id;
+      // Obtener todos los productos de la base de datos
+      const productos = await ProductModel.findByPk(id);
+  
+      if (!productos) {
+        return res.status(404).json({ message: "No se encontraron productos" });
+      }
+  
+      // Devolver la lista de productos
+      res.status(200).json({ message: "Productos obtenidos exitosamente", productos });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+
+
   export const addProductImage = async (req, res) => {
     const { id } = req.params; // ID del producto
     const file = req.file; // Archivo de imagen cargado
@@ -73,5 +93,75 @@ import { TOKEN_KEY } from "../config/config.js";
       return res.status(500).json({ message: "An error occurred while adding the image to the product" });
     }
   };
+
+
+  export const searchProducto = async (req, res)=>{
+    try {
+      const { name } = req.body;
+      const producto = await ProductModel.findAll(
+          {
+            where:{
+              name: { [Op.like]: `%${name}%` }
+            }
+         
+          }
+         
+        );
+      res.status(200).json({productos : producto});
+    }catch(error){
+      console.log(error);
+      res.status(500).json({message: "Error al buscar producto"});
+
+    }
+  };
+
+
+  export const updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, precio, categoria, stock } = req.body;
+        const file = req.file; // Imagen opcional
+
+        const product = await ProductModel.findByPk(id);
+        if (!product) {
+            return res.status(404).json({ message: "Producto no encontrado" });
+        }
+
+        // Actualizar datos del producto
+        product.set({
+            name: name || product.name,
+            description: description || product.description,
+            precio: precio || product.precio,
+            categoria: categoria || product.categoria,
+            stock: stock || product.stock,
+            imagen: file ? file.filename : product.imagen // Si hay nueva imagen, actualizar
+        });
+
+        await product.save();
+        res.status(200).json({ message: "Producto actualizado exitosamente", product });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error al actualizar el producto" });
+    }
+};
+
+
+export const deleteProduct = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const product = await ProductModel.findByPk(id);
+      if (!product) {
+          return res.status(404).json({ message: "Producto no encontrado" });
+      }
+
+      await product.destroy();
+      res.status(200).json({ message: "Producto eliminado exitosamente" });
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error al eliminar el producto" });
+  }
+};
 
   

@@ -7,10 +7,12 @@ import  { RouterUsuer } from './router/UserRouter.js';
 import { sequelize } from "./db/conexion.js";
 import  personrouter  from './router/PersonRouter.js';
 import productrouter from './router/ProductRouter.js';
+import cartrouter from './router/cartRoutes.js'
 
 // imaganes
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 
 const _PORT = PORT || 3000;
 const app = express();
@@ -30,6 +32,9 @@ app.use('/api', rotuerTypeUsers);
 app.use('/api', RouterUsuer);
 app.use('/api', personrouter);
 app.use('/api', productrouter);
+// Rutas del carrito
+app.use("/api/cart", cartrouter);
+
 
 const main = async () => {
     try {
